@@ -99,7 +99,12 @@
               <div class="demo-message agent">“Got it. I’m checking saved context first, routing company research to the analyst layer, then sending the result to the email specialist so you get one clean answer instead of scattered output.”</div>
               <div class="demo-output"><h4>Example Output</h4><ul><li>Fast company overview</li><li>What matters and what doesn’t</li><li>Suggested outreach angle</li><li>Drafted follow-up email</li><li>Optional next-step task list</li></ul></div>
               <p class="demo-note">This page is a guided example. Your live build can include voice, memory, research, email logic, content generation, outreach systems, and internal workflow routing based on what your business actually needs.</p>
-              <a class="btn btn-dark" href="https://calendly.com/korenthedev/30min" target="_blank" rel="noreferrer">Book a Discovery Call</a>
+              <div class="demo-actions">
+                <button class="btn btn-dark" id="playVoiceDemo" type="button">Play Voice Demo</button>
+                <button class="btn btn-light demo-stop" id="stopVoiceDemo" type="button">Stop</button>
+              </div>
+              <p class="demo-status" id="demoStatus">Tap play to hear a voice preview of the example workflow.</p>
+              <a class="btn btn-dark demo-cta" href="https://calendly.com/korenthedev/30min" target="_blank" rel="noreferrer">Book a Discovery Call</a>
             </div>
           </div>
         </div>
@@ -127,5 +132,60 @@
 
       <section class="section"><div class="container cta-panel"><div><div class="eyebrow light">Let’s Build Yours</div><h2>If your workflow is messy, repetitive, or wasting your time, this is what fixes that.</h2><p>Bring the broken process, the repeated task, the buried opportunity, or the idea you know should be a system by now. I’ll help architect the automation around it.</p></div><div class="cta-box"><h3>Discovery Call Focus</h3><ul><li>What your current workflow looks like</li><li>What should be automated first</li><li>Which tools need to be connected</li><li>What memory should store and retrieve</li><li>Which specialist agents your business actually needs</li></ul><a class="btn btn-light-solid" href="https://calendly.com/korenthedev/30min" target="_blank" rel="noreferrer">Book Your Discovery Call</a></div></div></section>
     </main>
+
+    <script>
+      const playButton = document.getElementById('playVoiceDemo');
+      const stopButton = document.getElementById('stopVoiceDemo');
+      const demoStatus = document.getElementById('demoStatus');
+      const demoText = `I've got a lead. I need a quick breakdown on their company, the best angle to approach them with, and a solid follow-up email. Got it. I'm checking saved context first, routing company research to the analyst layer, then sending the result to the email specialist so you get one clean answer instead of scattered output. Example output: fast company overview, what matters and what doesn't, suggested outreach angle, drafted follow-up email, and an optional next-step task list.`;
+
+      function stopVoiceDemo() {
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          demoStatus.textContent = 'Voice demo stopped.';
+        }
+      }
+
+      function playVoiceDemo() {
+        if (!('speechSynthesis' in window)) {
+          demoStatus.textContent = 'This browser does not support voice preview. You can still book a live walkthrough.';
+          return;
+        }
+
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(demoText);
+        utterance.rate = 0.96;
+        utterance.pitch = 1;
+        utterance.volume = 1;
+
+        const voices = window.speechSynthesis.getVoices();
+        const preferredVoice = voices.find(voice => /Google|Samantha|Aaron|Daniel|Karen/i.test(voice.name));
+        if (preferredVoice) utterance.voice = preferredVoice;
+
+        utterance.onstart = () => {
+          demoStatus.textContent = 'Playing voice demo...';
+          playButton.disabled = true;
+        };
+
+        utterance.onend = () => {
+          demoStatus.textContent = 'Voice demo finished. Tap play to hear it again.';
+          playButton.disabled = false;
+        };
+
+        utterance.onerror = () => {
+          demoStatus.textContent = 'Voice preview hit an issue on this browser, but the demo text is still shown above.';
+          playButton.disabled = false;
+        };
+
+        window.speechSynthesis.speak(utterance);
+      }
+
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.onvoiceschanged = () => {};
+      }
+
+      playButton.addEventListener('click', playVoiceDemo);
+      stopButton.addEventListener('click', stopVoiceDemo);
+    </script>
   </body>
 </html>
